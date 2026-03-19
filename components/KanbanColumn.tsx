@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Column, Card as CardType } from "@/types/kanban";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { KanbanCard } from "@/components/KanbanCard";
+import { useKanban } from "@/contexts/KanbanContext";
 
 interface KanbanColumnProps {
   column: Column;
   cards: CardType[];
   onAddCard: (columnId: string, title: string) => void;
   onDeleteCard: (id: string) => void;
-  onOpenDetail: (id: string) => void;
   onMoveCardDown: (cardId: string, columnId: string) => void;
 }
 
@@ -22,11 +22,13 @@ export function KanbanColumn({
   cards,
   onAddCard,
   onDeleteCard,
-  onOpenDetail,
   onMoveCardDown,
 }: KanbanColumnProps) {
+  const { dispatch } = useKanban();
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const nameRef = useRef(column.name);
   const [error, setError] = useState("");
 
   const handleConfirm = () => {
@@ -46,17 +48,47 @@ export function KanbanColumn({
     setIsAdding(false);
   };
 
+  const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const newName = e.target.value.trim();
+    if (newName) {
+      dispatch({ type: "RENAME_COLUMN", payload: { columnId: column.id, name: newName } });
+    }
+    setIsEditingName(false);
+  };
+
   return (
     <section role="region" aria-label={column.name} className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold px-1">{column.name}</h2>
+      {isEditingName ? (
+        <Input
+          aria-label="컬럼 이름"
+          defaultValue={column.name}
+          autoFocus
+          className="h-7 text-sm font-semibold"
+          onBlur={handleNameBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") setIsEditingName(false);
+          }}
+        />
+      ) : (
+        <h2
+          className="text-sm font-semibold px-1 cursor-pointer"
+          onDoubleClick={() => {
+            nameRef.current = column.name;
+            setIsEditingName(true);
+          }}
+        >
+          {column.name}
+        </h2>
+      )}
       <ScrollArea className="flex-1 max-h-[calc(100vh-12rem)]">
         <div className="flex flex-col gap-2 pr-3">
           {cards.map((card) => (
             <KanbanCard
               key={card.id}
               card={card}
+              columnId={column.id}
               onDelete={onDeleteCard}
-              onOpenDetail={onOpenDetail}
               onMoveDown={(id) => onMoveCardDown(id, column.id)}
             />
           ))}

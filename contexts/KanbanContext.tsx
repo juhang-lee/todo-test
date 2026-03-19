@@ -43,6 +43,15 @@ export function KanbanProvider({ children }: { children: ReactNode }) {
     saveBoard(state);
   }, [state]);
 
+  // 다크모드 DOM 동기화
+  useEffect(() => {
+    if (state.darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [state.darkMode]);
+
   return (
     <KanbanContext.Provider value={{ state, dispatch }}>
       {children}

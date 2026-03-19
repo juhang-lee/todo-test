@@ -35,6 +35,10 @@ export function saveBoard(state: KanbanState): void {
   setLocalStorage(KEY, JSON.stringify(payload));
 }
 
+export function clearStorageCache(): void {
+  storageCache.clear();
+}
+
 export function loadBoard(): KanbanState | null {
   try {
     const raw = getLocalStorage(KEY);
