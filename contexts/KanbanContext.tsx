@@ -4,11 +4,13 @@ import {
   createContext,
   useContext,
   useReducer,
+  useEffect,
   type Dispatch,
   type ReactNode,
 } from "react";
 import { KanbanState, Action } from "@/types/kanban";
 import { kanbanReducer } from "@/reducers/kanbanReducer";
+import { saveBoard, loadBoard } from "@/lib/storage";
 import { nanoid } from "nanoid";
 
 const INITIAL_STATE: KanbanState = {
@@ -29,7 +31,17 @@ interface KanbanContextValue {
 const KanbanContext = createContext<KanbanContextValue | null>(null);
 
 export function KanbanProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(kanbanReducer, INITIAL_STATE);
+  // lazy init: localStorage에서 복원, 실패 시 INITIAL_STATE 사용
+  const [state, dispatch] = useReducer(
+    kanbanReducer,
+    undefined,
+    () => loadBoard() ?? INITIAL_STATE
+  );
+
+  // state 변경 시 자동 저장
+  useEffect(() => {
+    saveBoard(state);
+  }, [state]);
 
   return (
     <KanbanContext.Provider value={{ state, dispatch }}>
