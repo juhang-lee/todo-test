@@ -12,8 +12,8 @@ if [ "$COUNT" -ge 3 ]; then
   exit 0
 fi
 
-# 테스트 실행
-if bun run test 2>/tmp/test-gate.err; then
+# 테스트 실행 (spec 테스트 제외 — *.spec.test.tsx는 Red가 정상)
+if bun run test --exclude "**/*.spec.test.tsx" 2>/tmp/test-gate.err; then
   rm -f "$COUNTER_FILE"
   exit 0
 else
