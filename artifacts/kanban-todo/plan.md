@@ -141,7 +141,7 @@
   - `app/page.tsx` — KanbanProvider 래핑, SearchFilterBar + KanbanBoard 배치
   - `components/KanbanBoard.tsx` — 3컬럼 그리드 (`grid grid-cols-3 gap-4`)
   - `components/KanbanColumn.tsx` — 컬럼 헤더 + ScrollArea 카드 목록 + "카드 추가" 버튼
-  - `components/KanbanCard.tsx` — 카드 UI (제목, 우선순위 Badge, 태그 Badge, 진행률 Progress, 더보기/삭제 버튼)
+  - `components/KanbanCard.tsx` — 카드 UI (제목, 우선순위 Badge, 태그 Badge, 진행률 Progress, 더보기/삭제 버튼, **"아래로 이동" 접근성 버튼** [KANBAN-008 테스트 요구])
   - 모바일: `grid grid-cols-1 @md:grid-cols-3` 반응형
 - **수용 기준**:
   - [ ] 3개 컬럼이 초기 이름 "할 일 / 진행 중 / 완료"로 표시됨
@@ -184,6 +184,7 @@
     - 설명: Textarea
     - 우선순위: ToggleGroup (High/Medium/Low + 미선택)
     - 태그: Input + 추가 버튼 + 제거 가능한 Badge 목록
+    - **"컬럼 이동" Select** [KANBAN-007/024 테스트 요구] — 현재 컬럼 외 다른 컬럼으로 이동
   - 우선순위/태그 변경 시 카드에 즉시 반영
 - **수용 기준**:
   - [ ] 제목 클릭 → 인라인 input 전환 (KANBAN-003)
