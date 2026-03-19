@@ -194,6 +194,8 @@ describe("KANBAN-007: 카드를 다른 컬럼으로 이동", () => {
 });
 
 // ── KANBAN-008: 같은 컬럼 내 카드 순서 변경 ───────────────────
+// 참고: dnd-kit 키보드 API는 jsdom에서 동작하지 않으므로
+// KANBAN-007과 동일하게 접근성 버튼("아래로 이동")으로 순서 변경을 테스트한다
 describe("KANBAN-008: 같은 컬럼 내 카드 순서 변경", () => {
   it("'A' 카드를 'C' 아래로 이동하면 순서가 B, C, A가 된다", async () => {
     const user = userEvent.setup();
@@ -207,16 +209,9 @@ describe("KANBAN-008: 같은 컬럼 내 카드 순서 변경", () => {
       await user.click(screen.getByRole("button", { name: /확인/i }));
     }
 
-    const cards = within(column).getAllByRole("article");
-    const cardA = cards[0];
-    const cardC = cards[2];
-
-    // 키보드 드래그 시뮬레이션: A 카드의 드래그 핸들로 C 아래로 이동
-    await user.click(within(cardA).getByRole("button", { name: /드래그/i }));
-    await user.keyboard("{Space}");
-    await user.keyboard("{ArrowDown}");
-    await user.keyboard("{ArrowDown}");
-    await user.keyboard("{Space}");
+    // A 카드를 아래로 2번 이동 (A→1번째→2번째 = C 아래)
+    await user.click(within(within(column).getAllByRole("article")[0]).getByRole("button", { name: /아래로 이동/i }));
+    await user.click(within(within(column).getAllByRole("article")[0]).getByRole("button", { name: /아래로 이동/i }));
 
     const reorderedCards = within(column).getAllByRole("article");
     expect(reorderedCards[0]).toHaveTextContent("B");
