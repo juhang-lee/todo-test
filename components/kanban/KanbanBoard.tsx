@@ -1,18 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useKanban } from "@/contexts/KanbanContext";
 import { KanbanColumn } from "@/components/KanbanColumn";
-import { KanbanFilter } from "@/types/kanban";
 
 export default function KanbanBoard() {
   const { state, dispatch } = useKanban();
 
-  const handleAddCard = (columnId: string) => {
-    const title = window.prompt("카드 제목을 입력하세요");
-    if (title && title.trim()) {
-      dispatch({ type: "ADD_CARD", payload: { columnId, title: title.trim() } });
-    }
+  const handleAddCard = (columnId: string, title: string) => {
+    dispatch({ type: "ADD_CARD", payload: { columnId, title } });
   };
 
   const handleDeleteCard = (id: string) => {
