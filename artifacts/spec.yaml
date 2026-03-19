@@ -1,0 +1,270 @@
+version: 1
+
+scenarios:
+  # ── 카드 추가 ──────────────────────────────────────────
+  - id: "KANBAN-001"
+    name: "카드 추가 - 제목 입력"
+    given: "'할 일' 컬럼에 카드가 없는 칸반 보드"
+    when: "'카드 추가' 버튼을 클릭하고 제목 '회의록 작성'을 입력한 뒤 확인한다"
+    then: "'할 일' 컬럼에 '회의록 작성' 카드가 표시된다"
+    examples:
+      - input: { column: "할 일", title: "회의록 작성" }
+        expect: { cardText: "회의록 작성", cardCount: 1 }
+      - input: { column: "진행 중", title: "API 연동" }
+        expect: { cardText: "API 연동", cardCount: 1 }
+
+  - id: "KANBAN-002"
+    name: "카드 추가 - 제목 빈 값 검증"
+    given: "카드 추가 폼에 제목 입력란이 비어 있는 상태"
+    when: "확인 버튼을 클릭한다"
+    then: "'제목을 입력해주세요' 오류 메시지가 표시되고 카드는 추가되지 않는다"
+    examples:
+      - input: { title: "" }
+        expect: { errorMessage: "제목을 입력해주세요", cardCount: 0 }
+
+  # ── 카드 인라인 편집 ──────────────────────────────────
+  - id: "KANBAN-003"
+    name: "카드 제목 인라인 편집"
+    given: "'회의록 작성' 카드가 칸반 보드에 표시된 상태"
+    when: "'회의록 작성' 텍스트를 클릭하고 '기획 미팅 정리'로 수정한 뒤 포커스를 해제한다"
+    then: "카드에 '기획 미팅 정리'가 표시된다"
+    examples:
+      - input: { original: "회의록 작성", updated: "기획 미팅 정리" }
+        expect: { cardText: "기획 미팅 정리" }
+
+  - id: "KANBAN-004"
+    name: "카드 우선순위 설정"
+    given: "카드의 더보기 패널이 열려 있는 상태"
+    when: "우선순위 선택에서 'High'를 선택한다"
+    then: "카드에 'High' 배지가 표시된다"
+    examples:
+      - input: { priority: "High" }
+        expect: { priorityBadge: "High" }
+      - input: { priority: "Low" }
+        expect: { priorityBadge: "Low" }
+
+  - id: "KANBAN-005"
+    name: "카드 태그 추가"
+    given: "카드의 더보기 패널이 열려 있는 상태"
+    when: "태그 입력란에 '#업무'를 입력하고 추가한다"
+    then: "카드에 '#업무' 태그가 표시된다"
+    examples:
+      - input: { tag: "#업무" }
+        expect: { tagText: "#업무" }
+      - input: { tag: "#개인" }
+        expect: { tagText: "#개인" }
+
+  # ── 카드 삭제 ──────────────────────────────────────────
+  - id: "KANBAN-006"
+    name: "카드 삭제"
+    given: "'할 일' 컬럼에 카드 2개가 표시된 상태"
+    when: "첫 번째 카드의 삭제 버튼을 클릭한다"
+    then: "해당 카드가 목록에서 사라지고 '할 일' 컬럼에 카드 1개가 표시된다"
+    examples:
+      - input: { deleteTarget: "회의록 작성", initialCount: 2 }
+        expect: { cardCount: 1, deletedCardVisible: false }
+
+  # ── 드래그&드롭 ────────────────────────────────────────
+  - id: "KANBAN-007"
+    name: "카드를 다른 컬럼으로 이동"
+    given: "'할 일' 컬럼에 '회의록 작성' 카드 1개, '진행 중' 컬럼에 카드 0개인 보드"
+    when: "'회의록 작성' 카드를 '진행 중' 컬럼으로 드래그한다"
+    then: "'진행 중' 컬럼에 '회의록 작성'이 표시되고 '할 일' 컬럼에서 사라진다"
+    examples:
+      - input: { card: "회의록 작성", from: "할 일", to: "진행 중" }
+        expect: { toColumnCardCount: 1, fromColumnCardCount: 0 }
+
+  - id: "KANBAN-008"
+    name: "같은 컬럼 내 카드 순서 변경"
+    given: "'할 일' 컬럼에 위에서부터 'A', 'B', 'C' 순서로 카드 3개가 있는 보드"
+    when: "'A' 카드를 'C' 아래로 드래그한다"
+    then: "'할 일' 컬럼에 'B', 'C', 'A' 순서로 표시된다"
+    examples:
+      - input: { column: "할 일", moved: "A", below: "C" }
+        expect: { items: ["B", "C", "A"] }
+
+  # ── 서브태스크 ─────────────────────────────────────────
+  - id: "KANBAN-009"
+    name: "서브태스크 추가"
+    given: "카드의 더보기 패널이 열려 있고 서브태스크가 없는 상태"
+    when: "서브태스크 입력란에 '자료 조사'를 입력하고 추가한다"
+    then: "체크리스트에 '자료 조사' 항목이 표시된다"
+    examples:
+      - input: { subtask: "자료 조사" }
+        expect: { subtaskText: "자료 조사", subtaskCount: 1 }
+
+  - id: "KANBAN-010"
+    name: "서브태스크 진행률 표시"
+    given: "카드에 서브태스크 3개가 있고 미완료 상태인 보드"
+    when: "서브태스크 1개를 체크한다"
+    then: "카드에 '1/3' 진행률이 표시된다"
+    examples:
+      - input: { total: 3, checked: 1 }
+        expect: { progress: "1/3" }
+      - input: { total: 3, checked: 3 }
+        expect: { progress: "3/3" }
+
+  - id: "KANBAN-011"
+    name: "서브태스크 삭제"
+    given: "카드의 더보기 패널에 서브태스크 '자료 조사'가 있는 상태"
+    when: "'자료 조사' 서브태스크의 삭제 버튼을 클릭한다"
+    then: "'자료 조사' 항목이 체크리스트에서 사라진다"
+    examples:
+      - input: { deleteTarget: "자료 조사" }
+        expect: { subtaskText: "자료 조사", subtaskVisible: false }
+
+  # ── 검색 ───────────────────────────────────────────────
+  - id: "KANBAN-012"
+    name: "제목 실시간 검색"
+    given: "보드에 '회의록 작성', '팀 회의 준비', 'API 연동' 카드가 있는 상태"
+    when: "검색창에 '회의'를 입력한다"
+    then: "'회의록 작성', '팀 회의 준비' 카드만 표시되고 'API 연동'은 표시되지 않는다"
+    examples:
+      - input: { query: "회의" }
+        expect: { visibleCards: ["회의록 작성", "팀 회의 준비"], hiddenCard: "API 연동" }
+      - input: { query: "xyz" }
+        expect: { totalCardCount: 0, emptyMessage: "검색 결과가 없습니다" }
+
+  - id: "KANBAN-013"
+    name: "검색어 삭제 시 전체 카드 복원"
+    given: "검색어 '회의'가 입력된 상태로 일부 카드만 표시 중"
+    when: "검색창을 비운다"
+    then: "모든 카드가 다시 표시된다"
+    examples:
+      - input: { query: "" }
+        expect: { totalCardCount: 3 }
+
+  # ── 필터 ───────────────────────────────────────────────
+  - id: "KANBAN-014"
+    name: "우선순위 필터"
+    given: "보드에 High 1개, Medium 1개, Low 1개 카드가 있는 상태"
+    when: "우선순위 필터에서 'High'를 선택한다"
+    then: "High 우선순위 카드만 표시된다"
+    examples:
+      - input: { priorityFilter: "High" }
+        expect: { cardCount: 1, visiblePriority: "High" }
+
+  - id: "KANBAN-015"
+    name: "태그 필터"
+    given: "'#업무' 태그 카드 2개, '#개인' 태그 카드 1개가 있는 보드"
+    when: "태그 필터에서 '#업무'를 선택한다"
+    then: "'#업무' 태그가 있는 카드 2개만 표시된다"
+    examples:
+      - input: { tagFilter: "#업무" }
+        expect: { cardCount: 2 }
+
+  - id: "KANBAN-016"
+    name: "우선순위 + 태그 복합 필터"
+    given: "High+#업무 1개, High+#개인 1개, Low+#업무 1개 카드가 있는 보드"
+    when: "우선순위 'High'와 태그 '#업무'를 동시에 선택한다"
+    then: "두 조건을 모두 만족하는 카드 1개만 표시된다"
+    examples:
+      - input: { priorityFilter: "High", tagFilter: "#업무" }
+        expect: { cardCount: 1 }
+
+  # ── 컬럼 이름 변경 ─────────────────────────────────────
+  - id: "KANBAN-017"
+    name: "컬럼 이름 더블클릭 편집"
+    given: "'할 일' 컬럼이 표시된 칸반 보드"
+    when: "'할 일' 컬럼 헤더를 더블클릭하고 '백로그'로 수정한 뒤 포커스를 해제한다"
+    then: "컬럼 헤더에 '백로그'가 표시된다"
+    examples:
+      - input: { original: "할 일", updated: "백로그" }
+        expect: { columnHeader: "백로그" }
+
+  - id: "KANBAN-018"
+    name: "컬럼 이름 빈 값 방지"
+    given: "컬럼 이름 편집 중 입력란이 비어 있는 상태"
+    when: "포커스를 해제한다"
+    then: "기존 이름 '할 일'이 유지된다"
+    examples:
+      - input: { updated: "" }
+        expect: { columnHeader: "할 일" }
+
+  # ── 다크모드 ───────────────────────────────────────────
+  - id: "KANBAN-019"
+    name: "다크모드 토글"
+    given: "앱이 라이트모드로 표시된 상태"
+    when: "다크모드 토글을 클릭한다"
+    then: "UI가 다크모드로 전환되고 토글이 활성 상태로 표시된다"
+    examples:
+      - input: { action: "toggle" }
+        expect: { darkMode: true, toggleState: "on" }
+
+  - id: "KANBAN-020"
+    name: "다크모드 새로고침 후 유지"
+    given: "다크모드가 활성화된 상태"
+    when: "페이지를 새로고침한다"
+    then: "다크모드가 유지된다"
+    examples:
+      - input: { action: "refresh" }
+        expect: { darkMode: true }
+
+  # ── localStorage 저장·복원 ────────────────────────────
+  - id: "KANBAN-021"
+    name: "카드 데이터 새로고침 후 복원"
+    given: "'회의록 작성' 카드를 '진행 중' 컬럼에 추가한 상태"
+    when: "페이지를 새로고침한다"
+    then: "'진행 중' 컬럼에 '회의록 작성' 카드가 표시된다"
+    examples:
+      - input: { card: "회의록 작성", column: "진행 중" }
+        expect: { cardText: "회의록 작성", inColumn: "진행 중" }
+
+  - id: "KANBAN-022"
+    name: "컬럼 이름 새로고침 후 복원"
+    given: "컬럼 이름을 '백로그'로 변경한 상태"
+    when: "페이지를 새로고침한다"
+    then: "컬럼 헤더에 '백로그'가 표시된다"
+    examples:
+      - input: { columnName: "백로그" }
+        expect: { columnHeader: "백로그" }
+
+  # ── 추가 시나리오 (검토 후 보강) ──────────────────────
+  - id: "KANBAN-023"
+    name: "더보기 패널 열기 - 편집 필드 표시"
+    given: "칸반 보드에 카드 1개가 표시된 상태"
+    when: "카드의 더보기 버튼을 클릭한다"
+    then: "더보기 패널에 설명 입력란, 우선순위 선택, 태그 입력란, 서브태스크 목록이 표시된다"
+    examples:
+      - input: { action: "open_detail_panel" }
+        expect:
+          descriptionFieldVisible: true
+          prioritySelectVisible: true
+          tagInputVisible: true
+          subtaskListVisible: true
+
+  - id: "KANBAN-024"
+    name: "드래그&드롭 이동 위치 새로고침 후 유지"
+    given: "'회의록 작성' 카드를 '할 일'에서 '완료' 컬럼으로 드래그한 상태"
+    when: "페이지를 새로고침한다"
+    then: "'완료' 컬럼에 '회의록 작성' 카드가 표시되고 '할 일' 컬럼에는 없다"
+    examples:
+      - input: { card: "회의록 작성", movedTo: "완료", action: "refresh" }
+        expect: { inColumn: "완료", fromColumnCardCount: 0 }
+
+  - id: "KANBAN-025"
+    name: "필터 초기화 후 전체 카드 복원"
+    given: "우선순위 'High' 필터가 적용되어 High 카드 1개만 표시된 상태 (전체 카드 3개)"
+    when: "필터를 초기화한다"
+    then: "모든 우선순위의 카드 3개가 다시 표시된다"
+    examples:
+      - input: { resetFilter: true }
+        expect: { cardCount: 3 }
+
+  - id: "KANBAN-026"
+    name: "카드 제목 인라인 편집 - 빈 값 방지"
+    given: "'회의록 작성' 카드가 인라인 편집 모드인 상태"
+    when: "제목 입력란을 비우고 포커스를 해제한다"
+    then: "카드에 기존 제목 '회의록 작성'이 유지된다"
+    examples:
+      - input: { original: "회의록 작성", updated: "" }
+        expect: { cardText: "회의록 작성" }
+
+  - id: "KANBAN-027"
+    name: "다크모드에서 라이트모드로 복귀"
+    given: "앱이 다크모드로 표시된 상태"
+    when: "다크모드 토글을 클릭한다"
+    then: "UI가 라이트모드로 전환되고 토글이 비활성 상태로 표시된다"
+    examples:
+      - input: { action: "toggle" }
+        expect: { darkMode: false, toggleState: "off" }
